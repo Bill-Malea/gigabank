@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:gigabank/model/address.dart';
+import 'package:provider/provider.dart';
 import 'model/country.dart';
+import 'provider/countries.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => CountryProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -36,6 +43,13 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  /// simulate fetching country data
+  @override
+  void initState() {
+    super.initState();
+    Provider.of<CountryProvider>(context, listen: false).getCountries();
+  }
+
   var address = Address(
     country: '',
     municipality: '',
@@ -47,14 +61,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  final List<Country> dummyCountries = [
-    Country(name: 'United States', flagUrl: 'https://example.com/us-flag.png'),
-    Country(name: 'United Kingdom', flagUrl: 'https://example.com/uk-flag.png'),
-    Country(name: 'Canada', flagUrl: 'https://example.com/canada-flag.png'),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    var dummyCountries = Provider.of<CountryProvider>(context).countries;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Register Address'),
@@ -79,7 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   style: TextStyle(fontSize: 16.0),
                 ),
                 const SizedBox(height: 16.0),
-                _buildCountryInput(),
+                _buildCountryInput(dummyCountries),
                 const SizedBox(height: 16.0),
                 _buildInputField('Prefecture', address.prefecture),
                 const SizedBox(height: 16.0),
@@ -142,7 +152,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _buildCountryInput() {
+  Widget _buildCountryInput(List<Country> dummyCountries) {
     return Autocomplete<Country>(
       optionsBuilder: (TextEditingValue textEditingValue) {
         return dummyCountries
@@ -218,17 +228,6 @@ class _MyHomePageState extends State<MyHomePage> {
       },
     );
   }
-}
-
-Future<List<Country>> fetchData() async {
-  await Future.delayed(const Duration(seconds: 2));
-  return [
-    Country(
-        name: 'United States', flagUrl: 'https://restcountries.com/v3/iso/USA'),
-    Country(name: 'kenya', flagUrl: 'https://restcountries.com/v3/iso/USA'),
-    Country(
-        name: 'United States', flagUrl: 'https://restcountries.com/v3/iso/USA'),
-  ];
 }
 
 void _showExitDialog(BuildContext context) {
